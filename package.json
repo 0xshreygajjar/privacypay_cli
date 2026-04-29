@@ -23,10 +23,12 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@inquirer/prompts": "^8.4.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@solana/web3.js": "^1.98.4",
     "bs58": "^6.0.0",
+    "dotenv": "^17.4.2",
     "nest-commander": "^3.20.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"

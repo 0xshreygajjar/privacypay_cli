@@ -1,11 +1,12 @@
 import { Command, CommandRunner, Option } from 'nest-commander';
 import { MagicBlockService } from '../magicblock.service';
 import { Injectable } from '@nestjs/common';
+import { password } from '@inquirer/prompts';
 
 interface TransferOptions {
   to: string;
   amount: number;
-  key: string;
+  key?: string;
 }
 
 @Injectable()
@@ -19,13 +20,27 @@ export class TransferCommand extends CommandRunner {
   }
 
   async run(passedParam: string[], options?: TransferOptions): Promise<void> {
-    if (!options?.to || !options?.amount || !options?.key) {
-      console.error('❌ Error: Missing required options: --to, --amount, and --key are required.');
+    if (!options?.to || !options?.amount) {
+      console.error('❌ Error: Missing required options: --to and --amount are required.');
+      return;
+    }
+
+    let key = options?.key;
+
+    if (!key) {
+      key = await password({
+        message: 'Please enter your private key:',
+        mask: '*',
+      });
+    }
+
+    if (!key) {
+      console.error('❌ Error: Private key is required.');
       return;
     }
 
     try {
-      await this.magicblock.executePrivateTransfer(options.to, options.amount, options.key);
+      await this.magicblock.executePrivateTransfer(options.to, options.amount, key);
     } catch (error) {
       // Error already logged in service
     }
@@ -51,8 +66,8 @@ export class TransferCommand extends CommandRunner {
 
   @Option({
     flags: '-k, --key <privateKeyBase58>',
-    description: 'Sender private key in Base58 format',
-    required: true,
+    description: 'Sender private key in Base58 format (optional, prompts if not provided)',
+    required: false,
   })
   parseKey(val: string) {
     return val;
