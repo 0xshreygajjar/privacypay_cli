@@ -3,8 +3,7 @@ import { MagicBlockService } from '../magicblock.service';
 import { Injectable } from '@nestjs/common';
 import { password } from '@inquirer/prompts';
 
-interface TransferOptions {
-  to: string;
+interface WithdrawOptions {
   amount: number;
   key?: string;
   cluster?: string;
@@ -13,17 +12,17 @@ interface TransferOptions {
 
 @Injectable()
 @Command({
-  name: 'transfer',
-  description: 'Execute a single private transfer using MagicBlock API',
+  name: 'withdraw',
+  description: 'Withdraw funds from the private vault to the base wallet',
 })
-export class TransferCommand extends CommandRunner {
+export class WithdrawCommand extends CommandRunner {
   constructor(private readonly magicblock: MagicBlockService) {
     super();
   }
 
-  async run(passedParam: string[], options?: TransferOptions): Promise<void> {
-    if (!options?.to || !options?.amount) {
-      console.error('❌ Error: Missing required options: --to and --amount are required.');
+  async run(passedParam: string[], options?: WithdrawOptions): Promise<void> {
+    if (!options?.amount) {
+      console.error('❌ Error: Missing required option: --amount is required.');
       return;
     }
 
@@ -45,24 +44,15 @@ export class TransferCommand extends CommandRunner {
     const mock = !!options?.mock;
 
     try {
-      await this.magicblock.executePrivateTransfer(options.to, options.amount, key, cluster, mock);
+      await this.magicblock.withdrawPrivateBalance(options.amount, key, cluster, mock);
     } catch (error) {
       // Error already logged in service
     }
   }
 
   @Option({
-    flags: '-t, --to <address>',
-    description: 'Destination Solana Wallet address',
-    required: true,
-  })
-  parseTo(val: string) {
-    return val;
-  }
-
-  @Option({
     flags: '-a, --amount <number>',
-    description: 'Amount of tokens to transfer',
+    description: 'Amount of tokens to withdraw',
     required: true,
   })
   parseAmount(val: string) {

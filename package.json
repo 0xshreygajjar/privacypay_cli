@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^8.4.2",
+    "@magicblock-labs/ephemeral-rollups-sdk": "^0.12.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@solana/web3.js": "^1.98.4",
@@ -32,7 +33,8 @@
     "dotenv": "^17.4.2",
     "nest-commander": "^3.20.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
