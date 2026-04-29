@@ -68,7 +68,14 @@ export class MagicBlockService {
         throw new Error(`Transaction failed on-chain: ${JSON.stringify(confirmation.value.err)}`);
       }
 
-      console.log(`✅ Private Transfer Finalized! Signature: ${sig}`);
+      console.log('\n==========================================');
+      console.log('🎉 Transfer Successful!');
+      console.log('==========================================');
+      console.log(`Amount: ${amount} USDC`);
+      console.log(`To: ${to}`);
+      console.log(`Signature: ${sig}`);
+      console.log(`View on Solscan: https://solscan.io/tx/${sig}?cluster=devnet`);
+      console.log('==========================================\n');
       return sig;
     } catch (error) {
       console.error(`❌ Private Transfer Failed for ${to}:`, error instanceof Error ? error.message : error);

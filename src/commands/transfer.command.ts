@@ -25,7 +25,7 @@ export class TransferCommand extends CommandRunner {
       return;
     }
 
-    let key = options?.key || process.env.PRIVATE_KEY || process.env.PRIVATEKEY;
+    let key = options?.key
 
     if (!key) {
       key = await password({
