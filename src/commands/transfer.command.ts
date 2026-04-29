@@ -7,6 +7,7 @@ interface TransferOptions {
   to: string;
   amount: number;
   key?: string;
+  memo?: string;
 }
 
 @Injectable()
@@ -40,7 +41,7 @@ export class TransferCommand extends CommandRunner {
     }
 
     try {
-      await this.magicblock.executePrivateTransfer(options.to, options.amount, key);
+      await this.magicblock.executePrivateTransfer(options.to, options.amount, key, false, options?.memo || 'Private Transfer');
     } catch (error) {
       // Error already logged in service
     }
@@ -70,6 +71,15 @@ export class TransferCommand extends CommandRunner {
     required: false,
   })
   parseKey(val: string) {
+    return val;
+  }
+
+  @Option({
+    flags: '-m, --memo <string>',
+    description: 'Transaction memo (optional)',
+    required: false,
+  })
+  parseMemo(val: string) {
     return val;
   }
 }
