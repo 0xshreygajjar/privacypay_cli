@@ -62,7 +62,11 @@ export class MagicBlockService {
       }
 
       const sig = await conn.sendRawTransaction(signedRawTx, { skipPreflight: true });
-      await conn.confirmTransaction(sig, "confirmed");
+      const confirmation = await conn.confirmTransaction(sig, "confirmed");
+
+      if (confirmation.value.err) {
+        throw new Error(`Transaction failed on-chain: ${JSON.stringify(confirmation.value.err)}`);
+      }
 
       console.log(`✅ Private Transfer Finalized! Signature: ${sig}`);
       return sig;
