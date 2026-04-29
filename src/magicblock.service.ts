@@ -57,18 +57,26 @@ export class MagicBlockService {
       const conn = new Connection(sendTo === 'ephemeral' ? this.EPHEMERAL_RPC : "https://api.devnet.solana.com", "confirmed");
 
       let signedRawTx: Uint8Array;
+      const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash();
       try {
         const vTx = VersionedTransaction.deserialize(buf);
+        vTx.message.recentBlockhash = blockhash;
         vTx.sign([keypair]);
         signedRawTx = vTx.serialize();
       } catch {
         const tx = Transaction.from(buf);
+        tx.recentBlockhash = blockhash;
         tx.sign(keypair);
         signedRawTx = tx.serialize();
       }
 
       const sig = await conn.sendRawTransaction(signedRawTx, { skipPreflight: true });
-      const confirmation = await conn.confirmTransaction(sig, "confirmed");
+      
+      const confirmation = await conn.confirmTransaction({
+        signature: sig,
+        blockhash,
+        lastValidBlockHeight
+      }, "confirmed");
 
       if (confirmation.value.err) {
         throw new Error(`Transaction failed on-chain: ${JSON.stringify(confirmation.value.err)}`);
@@ -120,12 +128,15 @@ export class MagicBlockService {
         const conn = new Connection(sendTo === 'ephemeral' ? this.EPHEMERAL_RPC : "https://api.devnet.solana.com", "confirmed");
 
         let signedRawTx: Uint8Array;
+        const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash();
         try {
           const vTx = VersionedTransaction.deserialize(buf);
+          vTx.message.recentBlockhash = blockhash;
           vTx.sign([keypair]);
           signedRawTx = vTx.serialize();
         } catch {
           const tx = Transaction.from(buf);
+          tx.recentBlockhash = blockhash;
           tx.sign(keypair);
           signedRawTx = tx.serialize();
         }
@@ -133,7 +144,12 @@ export class MagicBlockService {
         const sig = await conn.sendRawTransaction(signedRawTx, { skipPreflight: true });
         onProgress?.(i + 1, total, `Sent: ${sig}`);
         
-        const confirmation = await conn.confirmTransaction(sig, "confirmed");
+        const confirmation = await conn.confirmTransaction({
+          signature: sig,
+          blockhash,
+          lastValidBlockHeight
+        }, "confirmed");
+        
         if (confirmation.value.err) throw new Error(`On-chain error: ${JSON.stringify(confirmation.value.err)}`);
         
         return { ...p, signature: sig, status: 'success' as const };
@@ -143,5 +159,61 @@ export class MagicBlockService {
     });
 
     return await Promise.all(sendPromises);
+  }
+
+  async withdraw(owner: string, amount: number, privateKeyBase58: string, mint?: string) {
+    const keypair = Keypair.fromSecretKey(bs58.decode(privateKeyBase58));
+    const body = {
+      owner: owner || keypair.publicKey.toBase58(),
+      mint: mint || this.DEFAULT_MINT,
+      amount: Math.floor(amount * 1_000_000),
+      idempotent: true,
+      cluster: 'devnet'
+    };
+
+    const response = await fetch(`${this.API_BASE_URL}/withdraw`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    const data = await response.json();
+    console.log('Withdraw API Response:', JSON.stringify(data, null, 2));
+    const txBase64 = data.transaction || data.transactionBase64;
+    
+    if (!txBase64) {
+      throw new Error("No transaction object received from MagicBlock.");
+    }
+
+    const buf = Buffer.from(txBase64, "base64");
+    const sendTo = data.sendTo || 'base';
+    const conn = new Connection(sendTo === 'ephemeral' ? this.EPHEMERAL_RPC : "https://api.devnet.solana.com", "confirmed");
+
+    let signedRawTx: Uint8Array;
+    const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash();
+    
+    try {
+      const vTx = VersionedTransaction.deserialize(buf);
+      vTx.message.recentBlockhash = blockhash;
+      vTx.sign([keypair]);
+      signedRawTx = vTx.serialize();
+    } catch {
+      const tx = Transaction.from(buf);
+      tx.recentBlockhash = blockhash;
+      tx.sign(keypair);
+      signedRawTx = tx.serialize();
+    }
+
+    const sig = await conn.sendRawTransaction(signedRawTx, { skipPreflight: true });
+    await conn.confirmTransaction({
+      signature: sig,
+      blockhash,
+      lastValidBlockHeight
+    }, "confirmed");
+    return sig;
   }
 }

@@ -1,6 +1,6 @@
 {
-  "name": "magicblock-payments-cli",
-  "version": "0.1.0",
+  "name": "privacypay",
+  "version": "0.0.1",
   "description": "A CLI tool for executing private token transfers using MagicBlock Payments API",
   "author": "MagicBlock",
   "license": "MIT",
