@@ -4,7 +4,7 @@ import bs58 from 'bs58';
 
 @Injectable()
 export class MagicBlockService {
-  private readonly API_BASE_URL = process.env.BACKEND_URL || 'http://localhost:3005/magicblock';
+  private readonly API_BASE_URL = process.env.BACKEND_URL || 'https://backend.privacypay.net/magicblock';
   private readonly DEFAULT_MINT = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU'; 
   private readonly EPHEMERAL_RPC = "https://devnet.magicblock.app";
 
