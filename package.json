@@ -1,6 +1,6 @@
 {
   "name": "privacypay",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A CLI tool for executing private token transfers using PrivacyPay",
   "author": "privacy-pay",
   "license": "MIT",

@@ -1,4 +1,4 @@
-# privacypay CLI
+# PrivacyPay CLI
 
 A command-line tool for executing **private token transfers**, **automated payroll**, and **vault withdrawals** 
 
